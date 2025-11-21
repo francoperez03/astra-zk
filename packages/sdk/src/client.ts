@@ -1,5 +1,5 @@
 import { NoteGenerator, NoteParser } from "./note.js";
-import { MOCK_POOL } from "./mock.js";
+import { MOCK_POOL, createMockNote } from "./mock.js";
 import type {
   AstraConfig,
   Note,
@@ -144,6 +144,11 @@ export class AstraClient {
     amount: bigint;
     poolAddress: string;
   }): Promise<Note> {
+    if (!USE_REAL_CONNECTION) {
+      // In mock mode, generate a random note without using privateKey
+      await delay(200);
+      return createMockNote(params.amount, params.poolAddress);
+    }
     return this.noteGenerator.generate(params);
   }
 

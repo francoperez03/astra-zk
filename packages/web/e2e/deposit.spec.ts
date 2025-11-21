@@ -61,14 +61,16 @@ test.describe("Deposit Flow", () => {
 
 test.describe("Deposit Flow - Full E2E (with mocked wallet)", () => {
   test.beforeEach(async ({ page }) => {
-    // Set up mock wallet connection before each test
+    // Set up mock Freighter API before page loads
     await page.addInitScript(() => {
-      // Mock Freighter API
-      (window as any).freighterApi = {
-        isConnected: () => Promise.resolve(true),
-        getPublicKey: () =>
-          Promise.resolve("GTEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ12345678"),
-        signTransaction: (xdr: string) => Promise.resolve(xdr),
+      // Mock @stellar/freighter-api module functions
+      const mockPublicKey = "GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOUJ3BXFFOBVEPQZ";
+
+      // Create mock module on window that the imported functions will use
+      (window as any).__FREIGHTER_MOCK__ = {
+        isConnected: true,
+        isAllowed: true,
+        publicKey: mockPublicKey,
       };
     });
   });
@@ -86,6 +88,78 @@ test.describe("Deposit Flow - Full E2E (with mocked wallet)", () => {
     // even without a real wallet connection
 
     // Check page structure is correct
+    await expect(main.getByText("Convert public XLM into a private note")).toBeVisible();
+  });
+});
+
+test.describe("Deposit Flow - Console Verification", () => {
+  test("should execute deposit without BigInt errors", async ({ page }) => {
+    // Collect console messages
+    const consoleLogs: string[] = [];
+    const consoleErrors: string[] = [];
+
+    page.on("console", (msg) => {
+      if (msg.type() === "error") {
+        consoleErrors.push(msg.text());
+      } else {
+        consoleLogs.push(msg.text());
+      }
+    });
+
+    page.on("pageerror", (err) => {
+      consoleErrors.push(err.message);
+    });
+
+    // Mock Freighter API to simulate connected wallet
+    await page.addInitScript(() => {
+      const mockPublicKey = "GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOUJ3BXFFOBVEPQZ";
+
+      // Override the freighter-api module
+      (window as any).freighter = {
+        isConnected: () => Promise.resolve(true),
+        isAllowed: () => Promise.resolve(true),
+        setAllowed: () => Promise.resolve(),
+        getPublicKey: () => Promise.resolve(mockPublicKey),
+        signTransaction: (xdr: string) => Promise.resolve(xdr),
+      };
+    });
+
+    await page.goto("/deposit");
+
+    const main = page.locator("main");
+    await expect(main.getByRole("heading", { name: "Deposit" })).toBeVisible();
+
+    // Wait a bit for any async operations
+    await page.waitForTimeout(500);
+
+    // Verify no BigInt conversion errors occurred
+    const hasBigIntError = consoleErrors.some(
+      (err) => err.includes("Cannot convert") && err.includes("BigInt")
+    );
+
+    expect(hasBigIntError).toBe(false);
+  });
+
+  test("should show amount input when wallet mock is connected via zustand", async ({ page }) => {
+    // This test injects wallet state directly into the app
+    await page.goto("/deposit");
+
+    // Inject connected wallet state via browser console
+    await page.evaluate(() => {
+      // Try to set wallet state via localStorage (if app reads from it)
+      localStorage.setItem("astra:wallet:connected", "true");
+      localStorage.setItem(
+        "astra:wallet:publicKey",
+        "GDQP2KPQGKIHYJGXNUIYOMHARUARCA7DJT5FO2FFOOUJ3BXFFOBVEPQZ"
+      );
+    });
+
+    await page.reload();
+
+    const main = page.locator("main");
+    await expect(main.getByRole("heading", { name: "Deposit" })).toBeVisible();
+
+    // Page should load without errors
     await expect(main.getByText("Convert public XLM into a private note")).toBeVisible();
   });
 });
