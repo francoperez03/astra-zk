@@ -1,0 +1,5 @@
+[package]
+name = "common"
+type = "lib"
+authors = ["Astra Team"]
+compiler_version = ">=1.0.0"
