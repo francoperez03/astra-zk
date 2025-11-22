@@ -1,4 +1,4 @@
-use std::hash::poseidon2::Poseidon2::hash;
+use poseidon::poseidon2::Poseidon2::hash;
 
 /// Verify merkle inclusion and assert root matches
 pub fn assert_merkle_inclusion<let N: u32, let D: u32>(

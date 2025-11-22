@@ -1,6 +1,6 @@
 use common::definitions::{account, commitment};
 use common::merkle_tree::assert_merkle_inclusion;
-use std::hash::poseidon2::Poseidon2::hash;
+use poseidon::poseidon2::Poseidon2::hash;
 
 // TODO: update to 20 for production (~1M notes)
 global DEPTH: u32 = 2;

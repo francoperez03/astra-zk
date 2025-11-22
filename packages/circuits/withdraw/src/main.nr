@@ -1,5 +1,6 @@
 use common::definitions::{account, commitment, nullifier};
 use common::merkle_tree::assert_merkle_inclusion;
+use poseidon::poseidon2::Poseidon2::hash;
 
 // TODO: update to 20 for production
 global DEPTH: u32 = 2;
@@ -54,7 +55,6 @@ pub fn main(
 
 #[test]
 fn test_withdraw() {
-    use std::hash::poseidon2::Poseidon2::hash;
 
     let owner_pk = 12345;
     let owner_acc = account(owner_pk);
@@ -89,7 +89,6 @@ fn test_withdraw() {
 
 #[test(should_fail_with = "Invalid nullifier")]
 fn test_withdraw_wrong_owner() {
-    use std::hash::poseidon2::Poseidon2::hash;
 
     let real_owner_pk = 12345;
     let fake_owner_pk = 99999; // Wrong key
@@ -121,7 +120,6 @@ fn test_withdraw_wrong_owner() {
 
 #[test(should_fail_with = "Fee exceeds value")]
 fn test_withdraw_fee_too_high() {
-    use std::hash::poseidon2::Poseidon2::hash;
 
     let owner_pk = 12345;
     let owner_acc = account(owner_pk);
