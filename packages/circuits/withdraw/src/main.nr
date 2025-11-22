@@ -1,4 +1,4 @@
-use common::definitions::{account, commitment, nullifier};
+use common::definitions::{account, commitment, nullifier, derive_viewing_key, derive_nullifier_key};
 use common::merkle_tree::assert_merkle_inclusion;
 use poseidon::poseidon2::Poseidon2::hash;
 
@@ -9,13 +9,18 @@ global DEPTH: u32 = 2;
 ///
 /// Flow:
 /// 1. Owner has note with X tokens
-/// 2. Generates nullifier (burns the note)
+/// 2. Generates nullifier (burns the note) using nullifier_key
 /// 3. Receives X public tokens at recipient address
+///
+/// Key hierarchy:
+/// - spending_key -> viewing_key -> account
+/// - spending_key -> nullifier_key (for deriving nullifiers)
 pub fn main(
     // Private inputs
-    owner_private_key: Field,
+    owner_spending_key: Field,  // Owner's spending key (secret)
     note_value: Field,
     note_blinding: Field,
+    note_rho: Field,            // Unique note identifier from deposit/transfer
     merkle_path: [Field; DEPTH],
     merkle_indices: [bool; DEPTH],
 
@@ -26,12 +31,15 @@ pub fn main(
     relayer: pub Field,     // Optional relayer address
     fee: pub Field,         // Optional relayer fee
 ) {
-    let owner_account = account(owner_private_key);
+    // 1. Derive keys from spending key
+    let owner_viewing_key = derive_viewing_key(owner_spending_key);
+    let owner_nullifier_key = derive_nullifier_key(owner_spending_key);
+    let owner_account = account(owner_viewing_key);
 
-    // 1. Reconstruct commitment
+    // 2. Reconstruct commitment
     let note_commitment = commitment(owner_account, note_value, note_blinding);
 
-    // 2. Verify it's in the tree
+    // 3. Verify it's in the tree
     assert_merkle_inclusion(
         merkle_root,
         merkle_path,
@@ -40,11 +48,11 @@ pub fn main(
         "Note not in tree",
     );
 
-    // 3. Verify nullifier
-    let expected_nullifier = nullifier(note_commitment, note_blinding);
+    // 4. Verify nullifier (using nullifier_key for security)
+    let expected_nullifier = nullifier(owner_nullifier_key, note_commitment, note_rho);
     assert(expected_nullifier == out_nullifier, "Invalid nullifier");
 
-    // 4. Verify fee <= note_value (if relayer is used)
+    // 5. Verify fee <= note_value (if relayer is used)
     if relayer != 0 {
         assert(fee as u64 <= note_value as u64, "Fee exceeds value");
     }
@@ -55,14 +63,22 @@ pub fn main(
 
 #[test]
 fn test_withdraw() {
+    // Setup: owner's spending key
+    let owner_spending_key = 12345;
 
-    let owner_pk = 12345;
-    let owner_acc = account(owner_pk);
+    // Derive keys using new hierarchy
+    let owner_viewing_key = derive_viewing_key(owner_spending_key);
+    let owner_nullifier_key = derive_nullifier_key(owner_spending_key);
+    let owner_acc = account(owner_viewing_key);
+
     let value = 1000;
     let blinding = 99999;
+    let note_rho = hash([blinding], 1); // rho from original deposit
 
     let note_commitment = commitment(owner_acc, value, blinding);
-    let out_nullifier = nullifier(note_commitment, blinding);
+
+    // NEW: nullifier uses nullifier_key instead of blinding
+    let out_nullifier = nullifier(owner_nullifier_key, note_commitment, note_rho);
 
     // Build tree with the commitment
     let zero_hash = hash([0, 0], 2);
@@ -74,9 +90,10 @@ fn test_withdraw() {
     let fee = 0;
 
     main(
-        owner_pk,
+        owner_spending_key,
         value,
         blinding,
+        note_rho,
         [0, zero_hash],
         [false, false],
         merkle_root,
@@ -87,27 +104,36 @@ fn test_withdraw() {
     );
 }
 
-#[test(should_fail_with = "Invalid nullifier")]
+#[test(should_fail_with = "Note not in tree")]
 fn test_withdraw_wrong_owner() {
+    // Setup: real owner creates the note
+    let real_owner_spending_key = 12345;
+    let fake_owner_spending_key = 99999; // Wrong key - attacker
 
-    let real_owner_pk = 12345;
-    let fake_owner_pk = 99999; // Wrong key
-    let owner_acc = account(real_owner_pk);
+    // Real owner's keys
+    let real_owner_viewing_key = derive_viewing_key(real_owner_spending_key);
+    let real_owner_nullifier_key = derive_nullifier_key(real_owner_spending_key);
+    let real_owner_acc = account(real_owner_viewing_key);
+
     let value = 1000;
     let blinding = 99999;
+    let note_rho = hash([blinding], 1);
 
-    let note_commitment = commitment(owner_acc, value, blinding);
-    let out_nullifier = nullifier(note_commitment, blinding);
+    // Note belongs to real owner
+    let note_commitment = commitment(real_owner_acc, value, blinding);
+    let out_nullifier = nullifier(real_owner_nullifier_key, note_commitment, note_rho);
 
     let zero_hash = hash([0, 0], 2);
     let first_level = hash([note_commitment, 0], 2);
     let merkle_root = hash([first_level, zero_hash], 2);
 
-    // Try with wrong private key - should fail
+    // Try with wrong spending key - should fail because commitment won't match
+    // (attacker's account != real owner's account)
     main(
-        fake_owner_pk, // WRONG
+        fake_owner_spending_key, // WRONG - will derive different account
         value,
         blinding,
+        note_rho,
         [0, zero_hash],
         [false, false],
         merkle_root,
@@ -120,14 +146,20 @@ fn test_withdraw_wrong_owner() {
 
 #[test(should_fail_with = "Fee exceeds value")]
 fn test_withdraw_fee_too_high() {
+    // Setup: owner's spending key
+    let owner_spending_key = 12345;
 
-    let owner_pk = 12345;
-    let owner_acc = account(owner_pk);
+    // Derive keys
+    let owner_viewing_key = derive_viewing_key(owner_spending_key);
+    let owner_nullifier_key = derive_nullifier_key(owner_spending_key);
+    let owner_acc = account(owner_viewing_key);
+
     let value = 1000;
     let blinding = 99999;
+    let note_rho = hash([blinding], 1);
 
     let note_commitment = commitment(owner_acc, value, blinding);
-    let out_nullifier = nullifier(note_commitment, blinding);
+    let out_nullifier = nullifier(owner_nullifier_key, note_commitment, note_rho);
 
     let zero_hash = hash([0, 0], 2);
     let first_level = hash([note_commitment, 0], 2);
@@ -137,9 +169,10 @@ fn test_withdraw_fee_too_high() {
     let fee = 2000;      // Fee > value - INVALID
 
     main(
-        owner_pk,
+        owner_spending_key,
         value,
         blinding,
+        note_rho,
         [0, zero_hash],
         [false, false],
         merkle_root,
