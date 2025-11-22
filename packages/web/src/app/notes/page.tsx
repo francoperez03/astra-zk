@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NoteCard } from "@/components/note-card";
 import { useNotes, usePrivateBalance } from "@/hooks/useNotes";
@@ -26,10 +27,13 @@ export default function NotesPage() {
             Private balance: <span className="font-semibold text-foreground">{formatXLM(privateBalance)} XLM</span>
           </p>
         </div>
-        <Button onClick={() => router.push("/deposit")}>
+        <Link
+          href="/deposit"
+          className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
+        >
           <Plus className="w-4 h-4 mr-2" />
           New Deposit
-        </Button>
+        </Link>
       </div>
 
       {isLoading ? (

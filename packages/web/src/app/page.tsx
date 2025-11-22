@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePrivateBalance, useNotes } from "@/hooks/useNotes";
 import { useWallet } from "@/hooks/useWallet";
@@ -34,18 +33,20 @@ export default function Home() {
               <p className="text-sm text-muted-foreground">{activeNotes} active note{activeNotes !== 1 ? "s" : ""}</p>
             </div>
             <div className="flex gap-3 mt-6">
-              <Button asChild className="flex-1">
-                <Link href="/deposit">
-                  <ArrowDownToLine className="w-4 h-4 mr-2" />
-                  Deposit
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="flex-1">
-                <Link href="/withdraw">
-                  <ArrowUpFromLine className="w-4 h-4 mr-2" />
-                  Withdraw
-                </Link>
-              </Button>
+              <Link
+                href="/deposit"
+                className="flex-1 inline-flex items-center justify-center h-10 px-4 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
+              >
+                <ArrowDownToLine className="w-4 h-4 mr-2" />
+                Deposit
+              </Link>
+              <Link
+                href="/withdraw"
+                className="flex-1 inline-flex items-center justify-center h-10 px-4 rounded-md border border-border bg-background hover:bg-secondary transition-colors text-sm font-medium"
+              >
+                <ArrowUpFromLine className="w-4 h-4 mr-2" />
+                Withdraw
+              </Link>
             </div>
           </CardContent>
         </Card>
@@ -54,18 +55,20 @@ export default function Home() {
       {/* CTA (when not connected) */}
       {!publicKey && (
         <div className="flex gap-4 justify-center mb-16">
-          <Button asChild size="lg">
-            <Link href="/deposit">
-              <ArrowDownToLine className="w-4 h-4 mr-2" />
-              Deposit
-            </Link>
-          </Button>
-          <Button asChild variant="outline" size="lg">
-            <Link href="/withdraw">
-              <ArrowUpFromLine className="w-4 h-4 mr-2" />
-              Withdraw
-            </Link>
-          </Button>
+          <Link
+            href="/deposit"
+            className="inline-flex items-center justify-center h-11 px-8 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
+          >
+            <ArrowDownToLine className="w-4 h-4 mr-2" />
+            Deposit
+          </Link>
+          <Link
+            href="/withdraw"
+            className="inline-flex items-center justify-center h-11 px-8 rounded-md border border-border bg-background hover:bg-secondary transition-colors text-sm font-medium"
+          >
+            <ArrowUpFromLine className="w-4 h-4 mr-2" />
+            Withdraw
+          </Link>
         </div>
       )}
 

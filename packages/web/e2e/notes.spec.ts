@@ -8,11 +8,11 @@ test.describe("Notes Page", () => {
     await expect(page.getByText("Private balance:")).toBeVisible();
   });
 
-  test("should show New Deposit button", async ({ page }) => {
+  test("should show New Deposit link", async ({ page }) => {
     await page.goto("/notes");
 
     await expect(
-      page.getByRole("button", { name: /new deposit/i })
+      page.getByRole("link", { name: /new deposit/i })
     ).toBeVisible();
   });
 
@@ -21,7 +21,7 @@ test.describe("Notes Page", () => {
   }) => {
     await page.goto("/notes");
 
-    await page.getByRole("button", { name: /new deposit/i }).click();
+    await page.getByRole("link", { name: /new deposit/i }).click();
     await expect(page).toHaveURL("/deposit");
   });
 
