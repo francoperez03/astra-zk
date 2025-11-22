@@ -10,6 +10,7 @@ export function Header() {
 
   const navLinks = [
     { href: "/anchor", label: "Anchor" },
+    { href: "/regulator", label: "Regulator" },
     { href: "/deposit", label: "Deposit" },
     { href: "/withdraw", label: "Withdraw" },
     { href: "/notes", label: "Notes" },

@@ -28,31 +28,31 @@ interface ActionModalProps {
 
 const ACTION_CONFIG = {
   "transfer-public": {
-    title: "Transferir Público",
-    description: "Enviar XLM públicamente a otra cuenta",
+    title: "Transfer Public",
+    description: "Send XLM publicly to another account",
     icon: ArrowUpRight,
     balanceKey: "publicBalance" as const,
     needsDestination: true,
-    buttonText: "Transferir",
-    loadingText: "Transfiriendo...",
+    buttonText: "Transfer",
+    loadingText: "Transferring...",
   },
   "deposit-private": {
-    title: "Depositar a Privado",
-    description: "Convertir XLM público en balance privado",
+    title: "Deposit to Private",
+    description: "Convert public XLM to private balance",
     icon: ArrowDownToLine,
     balanceKey: "publicBalance" as const,
     needsDestination: false,
-    buttonText: "Depositar",
-    loadingText: "Depositando...",
+    buttonText: "Deposit",
+    loadingText: "Depositing...",
   },
   "transfer-private": {
-    title: "Transferir Privado",
-    description: "Enviar XLM de forma privada (ZK)",
+    title: "Transfer Private",
+    description: "Send XLM privately (ZK)",
     icon: Lock,
     balanceKey: "privateBalance" as const,
     needsDestination: true,
-    buttonText: "Transferir Privado",
-    loadingText: "Generando prueba...",
+    buttonText: "Transfer Private",
+    loadingText: "Generating proof...",
   },
 };
 
@@ -77,22 +77,22 @@ export function ActionModal({
 
     const amountNum = parseFloat(amount);
     if (isNaN(amountNum) || amountNum <= 0) {
-      setError("Ingresa un monto válido");
+      setError("Enter a valid amount");
       return;
     }
 
     if (amountNum > maxBalance) {
-      setError("Monto excede el balance disponible");
+      setError("Amount exceeds available balance");
       return;
     }
 
     if (config.needsDestination && !destination.trim()) {
-      setError("Ingresa una dirección de destino");
+      setError("Enter a destination address");
       return;
     }
 
     if (config.needsDestination && !destination.startsWith("G")) {
-      setError("Dirección de Stellar inválida");
+      setError("Invalid Stellar address");
       return;
     }
 
@@ -101,7 +101,7 @@ export function ActionModal({
       await onSubmit(xlmToStroops(amountNum), destination || undefined);
       setSuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error en la operación");
+      setError(err instanceof Error ? err.message : "Operation error");
     } finally {
       setIsLoading(false);
     }
@@ -115,12 +115,12 @@ export function ActionModal({
             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
               <Check className="h-8 w-8 text-green-600" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Operación Exitosa</h3>
+            <h3 className="text-xl font-semibold mb-2">Operation Successful</h3>
             <p className="text-muted-foreground mb-4">
-              {config.title} completado para {client.name}
+              {config.title} completed for {client.name}
             </p>
             <Button onClick={onClose} className="w-full">
-              Cerrar
+              Close
             </Button>
           </CardContent>
         </Card>
@@ -156,7 +156,7 @@ export function ActionModal({
 
           {/* Balance disponible */}
           <div className="bg-secondary/50 rounded-lg p-3">
-            <p className="text-xs text-muted-foreground">Balance disponible</p>
+            <p className="text-xs text-muted-foreground">Available balance</p>
             <p className="text-xl font-semibold">
               {formatXLM(client[config.balanceKey])}{" "}
               <span className="text-sm font-normal text-muted-foreground">
@@ -168,7 +168,7 @@ export function ActionModal({
           {/* Destination input */}
           {config.needsDestination && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Dirección destino</label>
+              <label className="text-sm font-medium">Destination address</label>
               <Input
                 placeholder="G..."
                 value={destination}
@@ -181,7 +181,7 @@ export function ActionModal({
 
           {/* Amount input */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Monto</label>
+            <label className="text-sm font-medium">Amount</label>
             <AmountInput
               value={amount}
               onChange={setAmount}

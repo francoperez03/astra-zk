@@ -78,7 +78,7 @@ export function ClientCard({
           <div className="bg-secondary/50 rounded-lg p-3">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
               <User className="h-3 w-3" />
-              <span>Público</span>
+              <span>Public</span>
             </div>
             <p className="text-lg font-semibold">
               {formatXLM(client.publicBalance)}{" "}
@@ -92,7 +92,7 @@ export function ClientCard({
           <div className="bg-primary/5 rounded-lg p-3">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
               <Lock className="h-3 w-3" />
-              <span>Privado</span>
+              <span>Private</span>
             </div>
             <p className="text-lg font-semibold">
               {formatXLM(client.privateBalance)}{" "}
@@ -111,7 +111,7 @@ export function ClientCard({
           )}
         >
           <div className="pt-3 border-t space-y-2">
-            <p className="text-xs text-muted-foreground mb-2">Acciones</p>
+            <p className="text-xs text-muted-foreground mb-2">Actions</p>
             <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
@@ -123,7 +123,7 @@ export function ClientCard({
                 disabled={client.publicBalance <= BigInt(0)}
               >
                 <ArrowUpRight className="h-3.5 w-3.5 mr-1.5" />
-                Transferir Público
+                Transfer Public
               </Button>
 
               <Button
@@ -136,7 +136,7 @@ export function ClientCard({
                 disabled={client.publicBalance <= BigInt(0)}
               >
                 <ArrowDownToLine className="h-3.5 w-3.5 mr-1.5" />
-                Depositar
+                Deposit
               </Button>
 
               <Button
@@ -149,7 +149,7 @@ export function ClientCard({
                 disabled={client.privateBalance <= BigInt(0)}
               >
                 <Lock className="h-3.5 w-3.5 mr-1.5" />
-                Transferir Privado
+                Transfer Private
               </Button>
             </div>
           </div>

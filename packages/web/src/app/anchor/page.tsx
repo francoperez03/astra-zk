@@ -77,7 +77,7 @@ export default function AnchorPage() {
       <main className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
           <p className="text-destructive mb-4">{error}</p>
-          <Button onClick={refetch}>Reintentar</Button>
+          <Button onClick={refetch}>Retry</Button>
         </div>
       </main>
     );
@@ -87,9 +87,9 @@ export default function AnchorPage() {
     <main className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Panel Anchor</h1>
+        <h1 className="text-3xl font-bold mb-2">Anchor Panel</h1>
         <p className="text-muted-foreground">
-          Gestiona los balances públicos y privados de tus clientes
+          Manage public and private balances of your clients
         </p>
       </div>
 
@@ -98,13 +98,13 @@ export default function AnchorPage() {
         <div className="bg-secondary/50 rounded-lg p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
             <Users className="h-4 w-4" />
-            <span>Total Clientes</span>
+            <span>Total Clients</span>
           </div>
           <p className="text-2xl font-bold">{clients.length}</p>
         </div>
 
         <div className="bg-secondary/50 rounded-lg p-4">
-          <p className="text-sm text-muted-foreground mb-1">Balance Público Total</p>
+          <p className="text-sm text-muted-foreground mb-1">Total Public Balance</p>
           <p className="text-2xl font-bold">
             {formatXLM(totalPublic)}{" "}
             <span className="text-base font-normal text-muted-foreground">XLM</span>
@@ -112,7 +112,7 @@ export default function AnchorPage() {
         </div>
 
         <div className="bg-primary/5 rounded-lg p-4">
-          <p className="text-sm text-muted-foreground mb-1">Balance Privado Total</p>
+          <p className="text-sm text-muted-foreground mb-1">Total Private Balance</p>
           <p className="text-2xl font-bold">
             {formatXLM(totalPrivate)}{" "}
             <span className="text-base font-normal text-muted-foreground">XLM</span>
@@ -125,7 +125,7 @@ export default function AnchorPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nombre o dirección..."
+            placeholder="Search by name or address..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
@@ -139,7 +139,7 @@ export default function AnchorPage() {
       {/* Client List */}
       {filteredClients.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
-          {search ? "No se encontraron clientes" : "No hay clientes registrados"}
+          {search ? "No clients found" : "No clients registered"}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
