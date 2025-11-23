@@ -1,32 +1,32 @@
-# Astra Privacy System - Flujos
+# Astra Privacy System - Flows
 
 ## Version: 1.0.0
 ## Date: 2025-11-22
 
 ---
 
-## Resumen del Sistema
+## System Overview
 
-Astra es un sistema de privacidad sobre Stellar que permite convertir tokens públicos (USDT, USDC, etc.) en tokens privados (pUSDT, pUSDC) usando Zero-Knowledge Proofs.
+Astra is a privacy system on Stellar that allows converting public tokens (USDT, USDC, etc.) into private tokens (pUSDT, pUSDC) using Zero-Knowledge Proofs.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         ASTRA PRIVACY SYSTEM                         │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
-│   PÚBLICO                    PRIVADO                    PÚBLICO     │
-│   ────────                   ───────                    ────────    │
+│   PUBLIC                       PRIVATE                    PUBLIC    │
+│   ──────                       ───────                    ──────    │
 │                                                                      │
 │   ┌──────┐    DEPOSIT    ┌──────────────┐   WITHDRAW   ┌──────┐    │
 │   │ USDT │ ────────────▶ │    pUSDT     │ ───────────▶ │ USDT │    │
-│   └──────┘               │  (privado)   │              └──────┘    │
+│   └──────┘               │  (private)   │              └──────┘    │
 │                          └──────────────┘                           │
 │                                 │                                    │
 │                                 │ TRANSFER                          │
 │                                 ▼                                    │
 │                          ┌──────────────┐                           │
 │                          │    pUSDT     │                           │
-│                          │ (otro owner) │                           │
+│                          │ (new owner)  │                           │
 │                          └──────────────┘                           │
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
@@ -36,15 +36,15 @@ Astra es un sistema de privacidad sobre Stellar que permite convertir tokens pú
 
 ## 1. Deposit Flow (USDT → pUSDT)
 
-### 1.1 Descripción
+### 1.1 Description
 
-El usuario deposita tokens públicos (USDT) en el Privacy Pool y recibe un commitment que representa su balance privado.
+The user deposits public tokens (USDT) into the Privacy Pool and receives a commitment representing their private balance.
 
-### 1.2 Diagrama de Secuencia
+### 1.2 Sequence Diagram
 
 ```mermaid
 sequenceDiagram
-    participant U as Usuario
+    participant U as User
     participant W as Wallet/Frontend
     participant SDK as Astra SDK
     participant SC as Soroban Contract<br/>(Privacy Pool)
@@ -53,7 +53,7 @@ sequenceDiagram
     Note over U,USDT: DEPOSIT FLOW: USDT → pUSDT
 
     %% Step 1: User initiates
-    U->>W: Quiero depositar 1000 USDT
+    U->>W: I want to deposit 1000 USDT
 
     %% Step 2: Generate commitment off-chain
     W->>SDK: generateDeposit(amount: 1000)
@@ -93,44 +93,44 @@ sequenceDiagram
     %% Step 7: User stores note locally
     W->>W: Store note locally:<br/>{commitment, amount, blinding, index}
 
-    W-->>U: Deposit exitoso!<br/>Tenés 1000 pUSDT privados
+    W-->>U: Deposit successful!<br/>You have 1000 private pUSDT
 ```
 
-### 1.3 Diagrama de Estado
+### 1.3 State Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        DEPOSIT: USDT → pUSDT                         │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
-│  ANTES                              DESPUÉS                         │
-│  ──────                             ───────                         │
+│  BEFORE                            AFTER                            │
+│  ──────                            ─────                            │
 │                                                                      │
-│  Usuario:                           Usuario:                        │
-│  ├─ USDT: 5000                      ├─ USDT: 4000                   │
-│  └─ pUSDT: 0                        └─ pUSDT: 1000 (commitment)     │
-│                                         └─ note: {amt, blind, idx}  │
+│  User:                             User:                            │
+│  ├─ USDT: 5000                     ├─ USDT: 4000                    │
+│  └─ pUSDT: 0                       └─ pUSDT: 1000 (commitment)      │
+│                                        └─ note: {amt, blind, idx}   │
 │                                                                      │
-│  Privacy Pool:                      Privacy Pool:                   │
-│  ├─ USDT locked: 10000              ├─ USDT locked: 11000           │
-│  └─ Merkle Tree:                    └─ Merkle Tree:                 │
-│      root: 0xabc...                     root: 0xdef...              │
-│      leaves: [c1, c2, c3]               leaves: [c1, c2, c3, c4]    │
+│  Privacy Pool:                     Privacy Pool:                    │
+│  ├─ USDT locked: 10000             ├─ USDT locked: 11000            │
+│  └─ Merkle Tree:                   └─ Merkle Tree:                  │
+│      root: 0xabc...                    root: 0xdef...               │
+│      leaves: [c1, c2, c3]              leaves: [c1, c2, c3, c4]     │
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### 1.4 Datos On-chain vs Off-chain
+### 1.4 On-chain vs Off-chain Data
 
-| Dato | On-chain | Off-chain (Usuario) | Visible al público |
-|------|----------|---------------------|-------------------|
-| commitment | ✅ | ✅ | ✅ (pero no revela nada) |
+| Data | On-chain | Off-chain (User) | Publicly Visible |
+|------|----------|------------------|------------------|
+| commitment | ✅ | ✅ | ✅ (but reveals nothing) |
 | amount | ❌ | ✅ | ❌ |
 | blinding | ❌ | ✅ | ❌ |
 | spending_key | ❌ | ✅ | ❌ |
 | viewing_key | ❌ | ✅ | ❌ |
 | merkle_root | ✅ | ✅ | ✅ |
-| encrypted_note | ✅ | ✅ (puede descifrar) | ✅ (pero encriptado) |
+| encrypted_note | ✅ | ✅ (can decrypt) | ✅ (but encrypted) |
 
 ### 1.5 Circuit Inputs/Outputs
 
@@ -138,25 +138,25 @@ sequenceDiagram
 // deposit/src/main.nr
 
 fn main(
-    // === PRIVATE INPUTS (solo el prover conoce) ===
-    spending_key: Field,           // Clave secreta del usuario
-    blinding: Field,               // Factor de randomización
+    // === PRIVATE INPUTS (only prover knows) ===
+    spending_key: Field,           // User's secret key
+    blinding: Field,               // Randomization factor
 
-    // === PUBLIC INPUTS (verificables on-chain) ===
-    amount: pub Field,             // Monto a depositar
+    // === PUBLIC INPUTS (verifiable on-chain) ===
+    amount: pub Field,             // Amount to deposit
     commitment: pub Field,         // H(account, amount, blinding)
-    merkle_root: pub Field,        // Nueva raíz del árbol
-    encrypted_note: pub [Field; 4] // Nota encriptada (opcional Phase 2)
+    merkle_root: pub Field,        // New tree root
+    encrypted_note: pub [Field; 4] // Encrypted note (optional Phase 2)
 ) {
-    // 1. Derivar viewing key y account
+    // 1. Derive viewing key and account
     let viewing_key = Poseidon2::hash([spending_key, VIEWING_DOMAIN], 2);
     let account = Poseidon2::hash([viewing_key], 1);
 
-    // 2. Verificar que commitment es correcto
+    // 2. Verify commitment is correct
     let expected_commitment = Poseidon2::hash([account, amount, blinding], 3);
     assert(commitment == expected_commitment);
 
-    // 3. Verificar merkle tree update (simplified)
+    // 3. Verify merkle tree update (simplified)
     // ...
 }
 ```
@@ -165,11 +165,11 @@ fn main(
 
 ## 2. Transfer Flow (pUSDT → pUSDT)
 
-### 2.1 Descripción
+### 2.1 Description
 
-El usuario transfiere tokens privados a otro usuario. Se "quema" el commitment original (nullifier) y se crean dos nuevos commitments: uno para el receptor y otro para el cambio.
+The user transfers private tokens to another user. The original commitment is "burned" (nullifier) and two new commitments are created: one for the receiver and one for change.
 
-### 2.2 Diagrama de Secuencia
+### 2.2 Sequence Diagram
 
 ```mermaid
 sequenceDiagram
@@ -182,18 +182,18 @@ sequenceDiagram
     Note over S,R: TRANSFER FLOW: pUSDT → pUSDT
 
     %% Setup
-    S->>W: Transferir 300 pUSDT a Receiver
+    S->>W: Transfer 300 pUSDT to Receiver
 
-    Note over S: Sender tiene:<br/>commitment_in = 1000 pUSDT
+    Note over S: Sender has:<br/>commitment_in = 1000 pUSDT
 
     %% Get receiver's public info
-    W->>R: Dame tu cuenta pública
+    W->>R: Give me your public account
     R-->>W: receiver_account = H(viewing_key_receiver)
 
     %% Generate proof off-chain
     W->>SDK: generateTransfer({<br/>  input: {commitment, amount: 1000, blinding},<br/>  receiver_account,<br/>  transfer_amount: 300<br/>})
 
-    Note over SDK: Off-chain:<br/>1. Verifica ownership de input<br/>2. Calcula nullifier = H(nk, commitment, rho)<br/>3. Crea commitment_receiver = H(receiver_acc, 300, blind1)<br/>4. Crea commitment_change = H(sender_acc, 700, blind2)<br/>5. Genera ZK proof
+    Note over SDK: Off-chain:<br/>1. Verify ownership of input<br/>2. Compute nullifier = H(nk, commitment, rho)<br/>3. Create commitment_receiver = H(receiver_acc, 300, blind1)<br/>4. Create commitment_change = H(sender_acc, 700, blind2)<br/>5. Generate ZK proof
 
     SDK-->>W: {<br/>  nullifier,<br/>  commitment_receiver,<br/>  commitment_change,<br/>  proof,<br/>  encrypted_notes<br/>}
 
@@ -215,70 +215,70 @@ sequenceDiagram
     SC-->>W: tx_hash
 
     %% Receiver can now see their note
-    Note over R: Receiver escanea eventos,<br/>descifra con viewing_key,<br/>encuentra sus 300 pUSDT
+    Note over R: Receiver scans events,<br/>decrypts with viewing_key,<br/>finds their 300 pUSDT
 
-    W-->>S: Transfer exitoso!
+    W-->>S: Transfer successful!
 ```
 
-### 2.3 Diagrama de Estado
+### 2.3 State Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    TRANSFER: Sender → Receiver                       │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
-│  ANTES                              DESPUÉS                         │
-│  ──────                             ───────                         │
+│  BEFORE                            AFTER                            │
+│  ──────                            ─────                            │
 │                                                                      │
-│  Sender:                            Sender:                         │
-│  └─ commitment_1: 1000 pUSDT        └─ commitment_3: 700 pUSDT      │
-│                                        (cambio)                     │
+│  Sender:                           Sender:                          │
+│  └─ commitment_1: 1000 pUSDT       └─ commitment_3: 700 pUSDT       │
+│                                       (change)                      │
 │                                                                      │
-│  Receiver:                          Receiver:                       │
-│  └─ (nada)                          └─ commitment_2: 300 pUSDT      │
+│  Receiver:                         Receiver:                        │
+│  └─ (nothing)                      └─ commitment_2: 300 pUSDT       │
 │                                                                      │
-│  Privacy Pool:                      Privacy Pool:                   │
-│  ├─ USDT locked: 11000              ├─ USDT locked: 11000           │
-│  │  (no cambia!)                    │  (no cambia!)                 │
-│  ├─ Nullifiers: [n1, n2]            ├─ Nullifiers: [n1, n2, n3]     │
-│  └─ Merkle Tree:                    └─ Merkle Tree:                 │
-│      leaves: [c1, c2, c3, c4]           leaves: [..., c5, c6]       │
+│  Privacy Pool:                     Privacy Pool:                    │
+│  ├─ USDT locked: 11000             ├─ USDT locked: 11000            │
+│  │  (unchanged!)                   │  (unchanged!)                  │
+│  ├─ Nullifiers: [n1, n2]           ├─ Nullifiers: [n1, n2, n3]      │
+│  └─ Merkle Tree:                   └─ Merkle Tree:                  │
+│      leaves: [c1, c2, c3, c4]          leaves: [..., c5, c6]        │
 │                                                                      │
-│  commitment_1 está "quemado"        Nadie sabe que c5 es de 300     │
-│  (nullifier publicado)              ni que c6 es de 700             │
+│  commitment_1 is "burned"          No one knows c5 is 300           │
+│  (nullifier published)             or that c6 is 700                │
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### 2.4 El Nullifier - Clave del Sistema
+### 2.4 The Nullifier - Key to the System
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                           NULLIFIER                                  │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
-│  ¿Qué es?                                                           │
-│  ─────────                                                          │
-│  Un identificador único derivado de un commitment que se publica    │
-│  cuando se "gasta" ese commitment. Previene double-spending.        │
+│  What is it?                                                        │
+│  ───────────                                                        │
+│  A unique identifier derived from a commitment that is published    │
+│  when that commitment is "spent". Prevents double-spending.         │
 │                                                                      │
 │  nullifier = Poseidon2(nullifier_key, commitment, rho)              │
 │                                                                      │
-│  Propiedades:                                                       │
-│  ────────────                                                       │
-│  ✅ Único por commitment (no hay colisiones)                        │
-│  ✅ No revela qué commitment se gastó                               │
-│  ✅ Solo el owner puede generarlo (necesita nullifier_key)          │
-│  ✅ Una vez publicado, el commitment no puede gastarse de nuevo     │
+│  Properties:                                                        │
+│  ──────────                                                         │
+│  ✅ Unique per commitment (no collisions)                           │
+│  ✅ Does not reveal which commitment was spent                      │
+│  ✅ Only the owner can generate it (needs nullifier_key)            │
+│  ✅ Once published, the commitment cannot be spent again            │
 │                                                                      │
-│  Flujo:                                                             │
-│  ──────                                                             │
-│  1. Usuario tiene commitment C                                      │
-│  2. Para gastar, genera nullifier N = f(nk, C, rho)                 │
-│  3. Publica N on-chain                                              │
-│  4. Contrato verifica que N no existe en nullifier_set              │
-│  5. Contrato agrega N al nullifier_set                              │
-│  6. Si alguien intenta gastar C de nuevo → genera mismo N → FALLA   │
+│  Flow:                                                              │
+│  ─────                                                              │
+│  1. User has commitment C                                           │
+│  2. To spend, generate nullifier N = f(nk, C, rho)                  │
+│  3. Publish N on-chain                                              │
+│  4. Contract verifies N doesn't exist in nullifier_set              │
+│  5. Contract adds N to nullifier_set                                │
+│  6. If anyone tries to spend C again → same N generated → FAILS     │
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -287,46 +287,61 @@ sequenceDiagram
 
 ## 3. Withdraw Flow (pUSDT → USDT)
 
-### 3.1 Descripción
+### 3.1 Description
 
-El usuario retira tokens privados y los convierte de vuelta en tokens públicos.
+The user withdraws private tokens and converts them back to public tokens.
 
-### 3.2 Diagrama de Secuencia
+### 3.2 Sequence Diagram
 
 ```mermaid
 sequenceDiagram
-    participant U as Usuario
+    participant U as User
     participant W as Wallet/Frontend
     participant SDK as Astra SDK
+    participant R as Relayer<br/>(Astra Network)
     participant SC as Soroban Contract<br/>(Privacy Pool)
     participant USDT as USDT Contract<br/>(Stellar Asset)
 
-    Note over U,USDT: WITHDRAW FLOW: pUSDT → USDT
+    Note over U,USDT: WITHDRAW FLOW: pUSDT → USDT (via Relayer)
 
     %% User initiates
-    U->>W: Retirar 500 pUSDT a mi wallet público
+    U->>W: Withdraw 500 pUSDT to my public wallet
 
-    Note over U: Usuario tiene:<br/>commitment = 700 pUSDT
+    Note over U: User has:<br/>commitment = 700 pUSDT
 
     %% Generate proof
-    W->>SDK: generateWithdraw({<br/>  input: {commitment, amount: 700, blinding},<br/>  withdraw_amount: 500,<br/>  recipient: user_stellar_address<br/>})
+    W->>SDK: generateWithdraw({<br/>  input: {commitment, amount: 700, blinding},<br/>  withdraw_amount: 500,<br/>  recipient: user_stellar_address,<br/>  relayer_fee: 5<br/>})
 
-    Note over SDK: Off-chain:<br/>1. Verifica ownership<br/>2. Calcula nullifier<br/>3. Si withdraw < amount:<br/>   crea commitment_change<br/>4. Genera ZK proof
+    Note over SDK: Off-chain:<br/>1. Verify ownership<br/>2. Compute nullifier<br/>3. Create commitment_change (195)<br/>   700 - 500 - 5 fee = 195<br/>4. Include relayer_fee in proof<br/>5. Generate ZK proof
 
-    SDK-->>W: {<br/>  nullifier,<br/>  commitment_change (200),<br/>  proof<br/>}
+    SDK-->>W: {<br/>  nullifier,<br/>  commitment_change (195),<br/>  proof,<br/>  relayer_fee: 5<br/>}
 
-    %% Submit to contract
-    W->>SC: withdraw(<br/>  nullifier,<br/>  merkle_root,<br/>  withdraw_amount: 500,<br/>  recipient,<br/>  commitment_change,<br/>  proof<br/>)
+    %% Send to Relayer (NOT directly to blockchain)
+    W->>R: submitWithdraw({<br/>  nullifier,<br/>  merkle_root,<br/>  withdraw_amount: 500,<br/>  recipient,<br/>  commitment_change,<br/>  proof,<br/>  relayer_fee: 5<br/>})
+
+    Note over R: Relayer verifies:<br/>1. Fee is sufficient<br/>2. Proof looks valid<br/>3. Add to batch (optional)
+
+    %% Relayer submits to blockchain
+    R->>SC: withdraw(<br/>  nullifier,<br/>  merkle_root,<br/>  withdraw_amount: 500,<br/>  recipient,<br/>  commitment_change,<br/>  proof,<br/>  relayer: relayer_address,<br/>  relayer_fee: 5<br/>)
+
+    Note over SC: On-chain sees:<br/>TX from: RELAYER<br/>(NOT from user!)
 
     %% Verification
     SC->>SC: verify_proof(proof)
     SC->>SC: require(!nullifiers[nullifier])
     SC->>SC: nullifiers[nullifier] = true
 
-    %% Transfer USDT back
+    %% Transfer USDT to user
     SC->>USDT: transfer(recipient, 500)
 
-    Note over USDT: 500 USDT unlocked<br/>and sent to user
+    Note over USDT: 500 USDT unlocked<br/>sent to user
+
+    USDT-->>SC: Transfer OK
+
+    %% Pay Relayer fee
+    SC->>USDT: transfer(relayer_address, 5)
+
+    Note over USDT: 5 USDT fee<br/>sent to Relayer
 
     USDT-->>SC: Transfer OK
 
@@ -336,104 +351,143 @@ sequenceDiagram
     end
 
     %% Emit event
-    SC->>SC: emit WithdrawEvent {<br/>  nullifier,<br/>  withdraw_amount,<br/>  recipient<br/>}
+    SC->>SC: emit WithdrawEvent {<br/>  nullifier,<br/>  withdraw_amount: 500,<br/>  recipient,<br/>  relayer,<br/>  relayer_fee: 5<br/>}
 
-    SC-->>W: tx_hash
-    W-->>U: Withdraw exitoso!<br/>500 USDT en tu wallet
+    SC-->>R: tx_hash
+    R-->>W: tx_hash
+    W-->>U: Withdraw successful!<br/>500 USDT in your wallet<br/>(5 USDT fee paid to relayer)
 ```
 
-### 3.3 Diagrama de Estado
+### 3.2.1 Why Use a Relayer?
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    RELAYER: PRIVACY BENEFITS                         │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  WITHOUT RELAYER:                                                   │
+│  ────────────────                                                   │
+│  On-chain TX shows:                                                 │
+│  ├─ from: USER_WALLET       ← Your address exposed!                │
+│  ├─ to: Privacy Pool                                                │
+│  ├─ timestamp: exact        ← Timing correlation                   │
+│  └─ IP: your real IP        ← If using public node                 │
+│                                                                      │
+│  WITH RELAYER:                                                      │
+│  ─────────────                                                      │
+│  On-chain TX shows:                                                 │
+│  ├─ from: RELAYER_ADDRESS   ← No link to your wallet               │
+│  ├─ to: Privacy Pool                                                │
+│  ├─ timestamp: batch        ← Mixed with other TXs                 │
+│  └─ IP: relayer's IP        ← Your IP never touches blockchain     │
+│                                                                      │
+│  RESULT:                                                            │
+│  ───────                                                            │
+│  ✅ Your public wallet NEVER appears as "from" in the TX           │
+│  ✅ Your IP is not exposed when sending the transaction            │
+│  ✅ Timing of your request differs from on-chain timestamp         │
+│  ✅ Multiple users share the same "from" (relayer)                 │
+│                                                                      │
+│  COST:                                                              │
+│  ─────                                                              │
+│  Relayer fee (e.g., 5 USDT or 0.1%) paid from your private         │
+│  balance, included in the ZK proof                                  │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 3.3 State Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                     WITHDRAW: pUSDT → USDT                           │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
-│  ANTES                              DESPUÉS                         │
-│  ──────                             ───────                         │
+│  BEFORE                            AFTER                            │
+│  ──────                            ─────                            │
 │                                                                      │
-│  Usuario:                           Usuario:                        │
-│  ├─ USDT: 4000                      ├─ USDT: 4500 (+500)            │
-│  └─ pUSDT: commitment (700)         └─ pUSDT: commitment_new (200)  │
+│  User:                             User:                            │
+│  ├─ USDT: 4000                     ├─ USDT: 4500 (+500)             │
+│  └─ pUSDT: commitment (700)        └─ pUSDT: commitment_new (200)   │
 │                                                                      │
-│  Privacy Pool:                      Privacy Pool:                   │
-│  ├─ USDT locked: 11000              ├─ USDT locked: 10500 (-500)    │
-│  ├─ Nullifiers: [...]               ├─ Nullifiers: [..., n_new]     │
-│  └─ Merkle Tree:                    └─ Merkle Tree:                 │
-│      (commitment está ahí)              (commitment_new agregado)   │
+│  Privacy Pool:                     Privacy Pool:                    │
+│  ├─ USDT locked: 11000             ├─ USDT locked: 10500 (-500)     │
+│  ├─ Nullifiers: [...]              ├─ Nullifiers: [..., n_new]      │
+│  └─ Merkle Tree:                   └─ Merkle Tree:                  │
+│      (commitment is there)             (commitment_new added)       │
 │                                                                      │
-│  El commitment original queda       500 USDT salen del pool         │
-│  "quemado" (nullifier publicado)    200 pUSDT quedan como cambio    │
-│                                                                      │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 4. Resumen de Operaciones
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    RESUMEN DE OPERACIONES                            │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  Operación    │ Inputs              │ Outputs            │ USDT     │
-│  ─────────────┼─────────────────────┼────────────────────┼──────────│
-│  DEPOSIT      │ USDT (público)      │ commitment         │ +locked  │
-│               │                     │ encrypted_note     │          │
-│  ─────────────┼─────────────────────┼────────────────────┼──────────│
-│  TRANSFER     │ nullifier           │ commitment_recv    │ (igual)  │
-│               │ merkle_proof        │ commitment_change  │          │
-│               │                     │ encrypted_notes    │          │
-│  ─────────────┼─────────────────────┼────────────────────┼──────────│
-│  WITHDRAW     │ nullifier           │ USDT (público)     │ -locked  │
-│               │ merkle_proof        │ commitment_change? │          │
-│               │ recipient           │                    │          │
+│  Original commitment is            500 USDT leave the pool          │
+│  "burned" (nullifier published)    200 pUSDT remain as change       │
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 5. Invariantes del Sistema
+## 4. Operations Summary
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                    INVARIANTES (siempre verdadero)                   │
+│                    OPERATIONS SUMMARY                                │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
-│  1. CONSERVACIÓN DE VALOR                                           │
-│     ─────────────────────                                           │
-│     Σ(USDT locked) = Σ(valores de commitments no gastados)          │
+│  Operation     │ Inputs              │ Outputs            │ USDT    │
+│  ──────────────┼─────────────────────┼────────────────────┼─────────│
+│  DEPOSIT       │ USDT (public)       │ commitment         │ +locked │
+│                │                     │ encrypted_note     │         │
+│  ──────────────┼─────────────────────┼────────────────────┼─────────│
+│  TRANSFER      │ nullifier           │ commitment_recv    │ (same)  │
+│                │ merkle_proof        │ commitment_change  │         │
+│                │                     │ encrypted_notes    │         │
+│  ──────────────┼─────────────────────┼────────────────────┼─────────│
+│  WITHDRAW      │ nullifier           │ USDT (public)      │ -locked │
+│                │ merkle_proof        │ commitment_change? │         │
+│                │ recipient           │                    │         │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 5. System Invariants
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    INVARIANTS (always true)                          │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  1. VALUE CONSERVATION                                              │
+│     ──────────────────                                              │
+│     Σ(USDT locked) = Σ(values of unspent commitments)               │
 │                                                                      │
 │  2. NO DOUBLE-SPENDING                                              │
 │     ────────────────────                                            │
-│     Cada commitment solo puede generar UN nullifier                 │
-│     Una vez publicado el nullifier, el commitment está "muerto"     │
+│     Each commitment can only generate ONE nullifier                 │
+│     Once the nullifier is published, the commitment is "dead"       │
 │                                                                      │
-│  3. PRIVACIDAD                                                      │
-│     ─────────                                                       │
-│     Observador on-chain NO puede determinar:                        │
-│     - Quién es el owner de un commitment                            │
-│     - Cuánto vale un commitment                                     │
-│     - Qué commitment se gastó (solo ve nullifier)                   │
-│     - Relación sender-receiver en transfers                         │
+│  3. PRIVACY                                                         │
+│     ───────                                                         │
+│     On-chain observer CANNOT determine:                             │
+│     - Who is the owner of a commitment                              │
+│     - How much a commitment is worth                                │
+│     - Which commitment was spent (only sees nullifier)              │
+│     - Sender-receiver relationship in transfers                     │
 │                                                                      │
-│  4. VERIFICABILIDAD                                                 │
-│     ──────────────                                                  │
-│     Todas las operaciones tienen ZK proof verificable on-chain      │
-│     No se requiere confianza en ningún tercero                      │
+│  4. VERIFIABILITY                                                   │
+│     ────────────                                                    │
+│     All operations have ZK proof verifiable on-chain                │
+│     No trust in any third party required                            │
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Referencias
+## References
 
-- [VIEWING_KEYS_SPEC.md](./VIEWING_KEYS_SPEC.md) - Especificación de viewing keys
-- [ENCRYPTED_NOTES_SPEC.md](./ENCRYPTED_NOTES_SPEC.md) - Especificación de notas encriptadas
-- [UltraHonk Verifier](../../../ultrahonk_soroban_contract/) - Contrato verificador
+- [VIEWING_KEYS_SPEC.md](./VIEWING_KEYS_SPEC.md) - Viewing keys specification
+- [ENCRYPTED_NOTES_SPEC.md](./ENCRYPTED_NOTES_SPEC.md) - Encrypted notes specification
+- [UltraHonk Verifier](../../../ultrahonk_soroban_contract/) - Verifier contract
 
 ---
 
