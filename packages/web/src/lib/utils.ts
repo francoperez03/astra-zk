@@ -13,6 +13,14 @@ export function formatXLM(stroops: bigint): string {
   });
 }
 
+export function formatUSDT(amount: bigint): string {
+  const usdt = Number(amount) / 1_000_000; // 6 decimals for USDT
+  return usdt.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
 export function formatAddress(address: string, chars = 4): string {
   if (address.length <= chars * 2 + 3) return address;
   return `${address.slice(0, chars)}...${address.slice(-chars)}`;

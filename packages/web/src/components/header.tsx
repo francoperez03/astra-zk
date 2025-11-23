@@ -9,11 +9,10 @@ export function Header() {
   const pathname = usePathname();
 
   const navLinks = [
-    { href: "/anchor", label: "Anchor" },
-    { href: "/regulator", label: "Regulator" },
+    { href: "/dashboard", label: "Dashboard" },
     { href: "/deposit", label: "Deposit" },
     { href: "/withdraw", label: "Withdraw" },
-    { href: "/notes", label: "Notes" },
+    { href: "/disclosure", label: "Disclosure" },
   ];
 
   return (
